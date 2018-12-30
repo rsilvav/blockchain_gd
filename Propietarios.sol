@@ -92,12 +92,20 @@ contract Propietarios{
   function getDemand(address userAddress)
     public 
     constant
-    returns(bool Funding, uint maxPrice)
+    returns(uint maxPrice)
   {
     if(!isDemand(userAddress)) revert(); 
-    return(
-      Demands[userAddress].Funding, 
-      Demands[userAddress].maxPrice); 
+    return(Demands[userAddress].maxPrice); 
+      //Demands[userAddress].index);
+  } 
+
+  function getFunding(address userAddress)
+    public 
+    constant
+    returns(bool Funding)
+  {
+    if(!isDemand(userAddress)) revert(); 
+    return(Demands[userAddress].Funding); 
       //Demands[userAddress].index);
   } 
   

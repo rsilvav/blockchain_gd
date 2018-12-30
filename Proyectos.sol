@@ -8,34 +8,6 @@ pragma solidity ^0.4.24;
     import "./Gestores.sol";
     //import "./CrowdFunding.sol";
 
-// ----------------------------------------------------------------------------
-// Owned contract
-// ----------------------------------------------------------------------------
-contract Owned {
-    address public owner;
-    address public newOwner;
-
-    event OwnershipTransferred(address indexed _from, address indexed _to);
-
-    constructor() public {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner {
-        require(msg.sender == owner);
-        _;
-    }
-
-    function transferOwnership(address _newOwner) public onlyOwner {
-        newOwner = _newOwner;
-    }
-    function acceptOwnership() public {
-        require(msg.sender == newOwner);
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
-        newOwner = address(0);
-    }
-}
 
     contract Proyectos is Owned{
 
@@ -51,15 +23,15 @@ contract Owned {
     
     //address creator = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
     //address owner = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148;
-    uint numProjects = 0;
-    uint interest_rate = 5;
+    uint public numProjects = 0;
+    uint public interest_rate = 5;
     
-    address Ccontract = 0xa77dfC2c9dD9e641529E6408151831AF3aE116C8;
-    address Ocontract = 0x91e0f81bfEd93063b901ec0D5Ec8DD7f4f33c770;
-    address Vcontract = 0x6dF74C11E78bCC3C89b4239534FBFe049cDb693b;
-    address Icontract = 0xC561270C6fF5286dc845d2e97F8bf3E53Af9c2FC;
-    address Mcontract = 0xbDE5dD103E14AC3b62FD97255111ae7a5Ed1a5Ef;
-    address Fcontract = 0x9368c3622133c91f7138B66e9589F6456B70928c;
+    address Ccontract = 0x3F5C926EC1BbDBD6C54DBdAAde5573D8e0205121;
+    address Ocontract = 0xB1bE2Ba214d35Bcc8a52D1c0eE45C1be47AEb477;
+    address Vcontract = 0x88679873522CEEADC39A00187634B657625caF0e;
+    address Icontract = 0x023C8ca441e2366d17D94255A37e1bB4b782e56e;
+    address Mcontract = 0xe67Cc0C35E461Ad649859738f50598Bd6eb11595;
+    address Fcontract = 0x72875926B2403882946D2cB63b2a000A4f949bac;
 
     
     Coops C = Coops(Ccontract);
@@ -118,7 +90,8 @@ contract Owned {
         if(!I.isInstaller(installer)) revert(); 
         if(!M.isManager(manager)) revert();
         
-        (bool funding, uint maxPrice) = O.getDemand(holder);
+        uint maxPrice = O.getDemand(holder);
+        bool funding = O.getFunding(holder);
         uint vendorPrice = V.getProvider(vendor);
         uint installerPrice = I.getInstaller(installer);
         uint managerPrice = M.getManager(manager);
@@ -144,13 +117,11 @@ contract Owned {
         Projects[numProjects].price = totalCost;
 
         //Funding
-        if (funding == true){
-            F.Crowdsale(holder, totalCost, 1);
-        }else if (funding == false){
+        if (funding == false){
             Projects[numProjects].funders.push(holder);
-            Projects[numProjects].funders.push(owner);
+            //Projects[numProjects].funders.push(owner);
             Projects[numProjects].amounts.push(prevCost);
-            Projects[numProjects].amounts.push(fee);
+            //Projects[numProjects].amounts.push(fee);
             C.NewProject(holder,
             Projects[numProjects].funders, 
             Projects[numProjects].amounts, 
