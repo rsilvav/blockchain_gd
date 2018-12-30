@@ -7,6 +7,9 @@ pragma solidity ^0.4.24;
 //import "./Gestores.sol";
 import "./Proyectos.sol";
 //import "./Coops.sol";
+
+
+
 contract CF is Owned{
     
     address public beneficiary;
@@ -42,7 +45,7 @@ contract CF is Owned{
     Instaladores I = Instaladores(Icontract);
     Gestores M = Gestores(Mcontract);
     Proyectos P = Proyectos(Pcontract);
-    uint interest_rate = P.getInterest();
+    uint interest_rate = P.interest_rate();
 
     /**
      * Constructor function
@@ -51,7 +54,7 @@ contract CF is Owned{
      */
      
     function Crowdsale (
-        address holder, 
+        address _holder, 
         address _vendor, 
         address _installer, 
         address _manager,
@@ -59,16 +62,16 @@ contract CF is Owned{
     ) 
       public onlyOwner{
         require(crowdsaleClosed);
-        require(O.isDemand(holder)); 
-        if(!V.isProvider(vendor)) revert(); 
-        if(!I.isInstaller(installer)) revert(); 
-        if(!M.isManager(manager)) revert();
+        require(O.isDemand(_holder)); 
+        if(!V.isProvider(_vendor)) revert(); 
+        if(!I.isInstaller(_installer)) revert(); 
+        if(!M.isManager(_manager)) revert();
         
-        uint maxPrice = O.getDemand(holder);
+        uint maxPrice = O.getDemand(_holder);
         //bool funding = O.getFunding(holder);
-        uint vendorPrice = V.getProvider(vendor);
-        uint installerPrice = I.getInstaller(installer);
-        uint managerPrice = M.getManager(manager);
+        uint vendorPrice = V.getProvider(_vendor);
+        uint installerPrice = I.getInstaller(_installer);
+        uint managerPrice = M.getManager(_manager);
         
         uint prevCost = vendorPrice + installerPrice + managerPrice;
         uint fee = prevCost * interest_rate / 100;
@@ -76,7 +79,7 @@ contract CF is Owned{
         
         if(maxPrice <= totalCost) revert();
         
-        beneficiary = holder;
+        beneficiary = _holder;
         vendor = _vendor;
         installer = _installer;
         manager = _manager;

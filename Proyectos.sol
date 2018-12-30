@@ -8,7 +8,9 @@ pragma solidity ^0.4.24;
     import "./Gestores.sol";
     //import "./CrowdFunding.sol";
 
-
+    contract CrowdF is Owned{   
+        address public beneficiary;
+    }
     contract Proyectos is Owned{
 
     struct Project{
@@ -31,7 +33,7 @@ pragma solidity ^0.4.24;
     address Vcontract = 0x88679873522CEEADC39A00187634B657625caF0e;
     address Icontract = 0x023C8ca441e2366d17D94255A37e1bB4b782e56e;
     address Mcontract = 0xe67Cc0C35E461Ad649859738f50598Bd6eb11595;
-    address Fcontract = 0x72875926B2403882946D2cB63b2a000A4f949bac;
+    //address Fcontract = 0x72875926B2403882946D2cB63b2a000A4f949bac;
 
     
     Coops C = Coops(Ccontract);
@@ -39,7 +41,7 @@ pragma solidity ^0.4.24;
     Proveedores V = Proveedores(Vcontract);
     Instaladores I = Instaladores(Icontract);
     Gestores M = Gestores(Mcontract);
-    CrowdFunding F = CrowdFunding(Fcontract);
+    //CF F = CF(Fcontract);
     
     
     mapping(uint => Project) private Projects;
@@ -72,14 +74,6 @@ pragma solidity ^0.4.24;
     return true;
   }
 
-  function getInterest() 
-    public
-    constant
-    returns(uint count)
-  {
-    return interest_rate;
-  }
-
     function Matching (address holder, address vendor, address installer, address manager)
         public
         returns(bool success)
@@ -96,12 +90,18 @@ pragma solidity ^0.4.24;
         uint installerPrice = I.getInstaller(installer);
         uint managerPrice = M.getManager(manager);
         
-        uint prevCost = vendorPrice + installerPrice + managerPrice;
-        uint fee = prevCost * interest_rate / 100;
-        uint totalCost = prevCost + fee;
+        //uint prevCost = vendorPrice + installerPrice + managerPrice;
+        //uint fee = prevCost * interest_rate / 100;
+        //uint totalCost = prevCost + fee;
         
+        uint fee = (vendorPrice + installerPrice + managerPrice) * interest_rate / 100;
+        uint totalCost = vendorPrice + installerPrice + managerPrice + fee;
         
         if(maxPrice <= totalCost) revert();
+        if (funding == true){
+            CrowdF F = CrowdF(msg.sender);
+            if (F.beneficiary()!=holder) revert();
+        } 
         
         //Manage Debt
         C.addDebt(holder, vendor, vendorPrice);
@@ -120,7 +120,7 @@ pragma solidity ^0.4.24;
         if (funding == false){
             Projects[numProjects].funders.push(holder);
             //Projects[numProjects].funders.push(owner);
-            Projects[numProjects].amounts.push(prevCost);
+            Projects[numProjects].amounts.push(totalCost-fee);
             //Projects[numProjects].amounts.push(fee);
             C.NewProject(holder,
             Projects[numProjects].funders, 

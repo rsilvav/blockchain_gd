@@ -9,8 +9,8 @@ pragma solidity ^0.4.24;
 // Deployed to : 0xdD870fA1b7C4700F2BD7f44238821C26f7392148
 // Symbol      : Coops
 // Name        : Coops Token
-// Total supply: 100000000
-// Decimals    : 18
+// Total supply: 1000000000
+// Decimals    : 0
 //
 // Enjoy.
 //
@@ -114,49 +114,9 @@ contract CrowdFunding is Owned{
     event GoalReached(address recipient, uint totalAmountRaised);
     event FundTransfer(address backer, uint amount, bool isContribution);
     
-    address Ccontract = 0x038f160ad632409bfb18582241d9fd88c1a072ba;
+    address Ccontract = this;
     Coops C = Coops(Ccontract);
 
-    /**
-     * Constructor function
-     *
-     * Setup the owner
-     */
-     
-     
-    function Crowdsale (
-        address _beneficiary,
-        uint _fundingGoal,
-        uint durationInMinutes
-    ) onlyOwner 
-      public {
-        require(crowdsaleClosed);
-        beneficiary = _beneficiary;
-        fundingGoal = _fundingGoal;  //InERC20;
-        deadline = now + durationInMinutes * 2 seconds;
-        crowdsaleClosed = false;
-        amountRaised = 0;
-        for (uint i = 0; i < numFunders; i++){
-            balanceOf[Funders[i]] = 0;
-        }
-        numFunders = 0;
-    }
-
-    /**
-     * Fallback function
-     *
-     * The function without name is the default function that is called whenever anyone sends funds to a contract
-     */
-    /*  DONATIONS IN ETHER
-    function () payable public {
-        require(!crowdsaleClosed);
-        uint amount = msg.value; 
-        balanceOf[msg.sender] += amount;
-        amountRaised += amount;
-        emit FundTransfer(msg.sender, amount, true);
-        //address(this);
-    }*/
-    
     function receiveFund
     (address _sender,
     uint256 _tokens,
@@ -178,58 +138,6 @@ contract CrowdFunding is Owned{
 
     modifier afterDeadline() { if (now >= deadline) _; }
 
-    /**
-     * Check if goal was reached
-     *
-     * Checks if the goal or time limit has been reached and ends the campaign
-     */
-    function checkGoalReached() public afterDeadline {
-        //if (amountRaised >= fundingGoal){
-        if (C.balanceOf(this) >= fundingGoal){
-            fundingGoalReached = true;
-            emit GoalReached(beneficiary, amountRaised);
-        }
-        crowdsaleClosed = true;
-    }
-
-
-    /**
-     * Withdraw the funds
-     *
-     * Checks to see if goal or time limit has been reached, and if so, and the funding goal was reached,
-     * sends the entire amount to the beneficiary. If goal was not reached, each contributor can withdraw
-     * the amount they contributed.
-     */
-    function safeWithdrawal() public afterDeadline {
-        if (!fundingGoalReached) {
-            uint amount = balanceOf[msg.sender];
-            balanceOf[msg.sender] = 0;
-            if (amount > 0) {
-                if (C.transfer(msg.sender, amount)){
-                   emit FundTransfer(msg.sender, amount, false);
-                } else {
-                    balanceOf[msg.sender] = amount;
-                }
-            }
-        }
-
-        if (fundingGoalReached && beneficiary == msg.sender) {
-            if (C.transfer(beneficiary, amountRaised)) {
-               emit FundTransfer(beneficiary, amountRaised, false);
-                for (uint i = 0; i < numFunders; i++){
-                    balanceOf[Funders[i]] = 0;
-                }
-                C.NewProject(beneficiary,
-                    Funders, 
-                    Funds, 
-                    amountRaised);
-            } else {
-                //If we fail to send the funds to beneficiary, unlock funders balance
-                fundingGoalReached = false;
-            }
-            //if (C.transfer(beneficiary, amountRaised)) revert();
-        }
-    }
 }
 
 
@@ -260,8 +168,8 @@ contract Coops is ERC20Interface, Owned, SafeMath {
     uint8 public decimals;
     uint public _totalSupply;
     
-    uint numProjects = 0;
-    uint kwh_price = 100;
+    uint public numProjects = 0;
+    uint public kwh_price = 100;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
@@ -275,8 +183,8 @@ contract Coops is ERC20Interface, Owned, SafeMath {
     constructor() public {
         symbol = "Coops";
         name = "Coops Token";
-        decimals = 18;
-        _totalSupply = 100000000;
+        decimals = 0;
+        _totalSupply = 1000000000;
         balances[owner] = _totalSupply;
         emit Transfer(address(0), owner, _totalSupply);
     }
@@ -402,6 +310,8 @@ contract Coops is ERC20Interface, Owned, SafeMath {
         return true;
     }*/
     function Fund(address spender, uint tokens) public returns (bool success) {
+        require(balanceOf(msg.sender)>0);
+        require(totalDebts[msg.sender]==0);
         allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
         //ApproveAndCallFallBack(spender).receiveApproval(msg.sender, tokens, this, data);
