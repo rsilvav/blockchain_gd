@@ -54,6 +54,7 @@ contract Proveedores{
     ProviderIndex[rowToDelete] = keyToMove;
     Providers[keyToMove].index = rowToDelete; 
     ProviderIndex.length--;
+    Providers[userAddress].index = 0;
     emit
     LogDeleteProvider(
         userAddress, 

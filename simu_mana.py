@@ -19,124 +19,102 @@ private_keys = data['Llave Privada']
 
 w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/4c0ec7f1412a489d91e1934c66ebf5b1"))
 
-# Solidity source code
-Instaladores_source_code = '''
+Gestores_source_code = '''
 pragma solidity ^0.4.24;
 
 //import "./Owned.sol";
 
-contract Instaladores{
+contract Gestores{
 
-  struct Installer {
+  struct Manager {
     uint Price;
     uint index;
   }
   
-  mapping(address => Installer) private Installers;
-  address[] private InstallerIndex;
-
+  mapping(address => Manager) private Managers;
+  address[] private ManagerIndex;
+  
   mapping(address => int) private Scores;
   mapping(address => mapping(address => bool)) canRate;
-  
-  event LogNewInstaller   (address indexed userAddress, uint index, uint maxPrice);
-  event LogUpdateInstaller(address indexed userAddress, uint index, uint maxPrice);
-  event LogDeleteInstaller(address indexed userAddress, uint index);
+
+  event LogNewManager   (address indexed userAddress, uint index, uint maxPrice);
+  event LogUpdateManager(address indexed userAddress, uint index, uint maxPrice);
+  event LogDeleteManager(address indexed userAddress, uint index);
   event LogNewRate(address indexed Rated, int Score);
   
-  function isInstaller(address userAddress)
+  function isManager(address userAddress)
     public 
     constant
     returns(bool isIndeed) 
   {
-    if(InstallerIndex.length == 0) return false;
-    return (InstallerIndex[Installers[userAddress].index] == userAddress);
+    if(ManagerIndex.length == 0) return false;
+    return (ManagerIndex[Managers[userAddress].index] == userAddress);
   }
 
-  function newInstaller(
+  function newManager(
     uint    Price) 
     public
     returns(uint index)
   {
-    if(isInstaller(msg.sender)) revert(); 
-    Installers[msg.sender].Price   = Price;
-    Installers[msg.sender].index     = InstallerIndex.push(msg.sender)-1;
+    if(isManager(msg.sender)) revert(); 
+    Managers[msg.sender].Price   = Price;
+    Managers[msg.sender].index     = ManagerIndex.push(msg.sender)-1;
     emit 
-        LogNewInstaller(
+        LogNewManager(
         msg.sender, 
-        Installers[msg.sender].index, 
+        Managers[msg.sender].index, 
         Price);
-    return InstallerIndex.length-1;
+    return ManagerIndex.length-1;
   }
 
-  function deleteInstaller(address userAddress) 
+  function deleteManager(address userAddress) 
     public
     returns(uint index)
   {
-    if(!isInstaller(userAddress)) revert(); 
-    uint rowToDelete = Installers[userAddress].index;
-    address keyToMove = InstallerIndex[InstallerIndex.length-1];
-    InstallerIndex[rowToDelete] = keyToMove;
-    Installers[keyToMove].index = rowToDelete; 
-    InstallerIndex.length--;
-    Installers[userAddress].index = 0;
+    if(!isManager(userAddress)) revert(); 
+    uint rowToDelete = Managers[userAddress].index;
+    address keyToMove = ManagerIndex[ManagerIndex.length-1];
+    ManagerIndex[rowToDelete] = keyToMove;
+    Managers[keyToMove].index = rowToDelete; 
+    ManagerIndex.length--;
+    Managers[userAddress].index = 0;
     emit
-    LogDeleteInstaller(
+    LogDeleteManager(
         userAddress, 
         rowToDelete);
     emit
-    LogUpdateInstaller(
+    LogUpdateManager(
         keyToMove, 
         rowToDelete, 
-        Installers[keyToMove].Price);
+        Managers[keyToMove].Price);
     return rowToDelete;
   }
   
-  function getInstaller(address userAddress)
+  function getManager(address userAddress)
     public 
     constant
-    returns(uint maxPrice)
+    returns(uint Price)
   {
-    if(!isInstaller(userAddress)) revert(); 
-    return(Installers[userAddress].Price);
-      //Installers[userAddress].index);
-  } 
-  
-  function updatePrice(uint newPrice) 
-    public
-    returns(bool success) 
-  {
-    if(!isInstaller(msg.sender)) revert(); 
-    Installers[msg.sender].Price = newPrice;
-    emit
-    LogUpdateInstaller(
-      msg.sender, 
-      Installers[msg.sender].index,
-      newPrice);
-    return true;
+    if(!isManager(userAddress)) revert(); 
+    return(
+      Managers[userAddress].Price); 
+      //Managers[userAddresngth;
   }
 
-  function getInstallersCount() 
-    public
-    constant
-    returns(uint count)
-  {
-    return InstallerIndex.length;
-  }
-
-  function getInstallerAtIndex(uint index)
+  function getManagerAtIndex(uint index)
     public
     constant
     returns(address userAddress)
   {
-    return InstallerIndex[index];
+    return ManagerIndex[index];
   }
 
-  function getScore(address installer)
+  function getScore(address manager)
     public
     constant
     returns(int score)
   {
-    return Scores[installer];
+    return Scores[manager];
   }
 
   function allowRating(
@@ -166,32 +144,31 @@ contract Instaladores{
         score);
     return true;
   }  
-
 }
-
 '''
 
-Instaladores_compiled_sol = compile_source(Instaladores_source_code,  import_remappings=['=./', '-']) # Compiled source code
-Instaladores_interface = Instaladores_compiled_sol['<stdin>:Instaladores']
+Gestores_compiled_sol = compile_source(Gestores_source_code,  import_remappings=['='+os.getcwd(),'=./', '-']) # Compiled source code
+#Gestores_compiled_sol = Gestores_source(Gestores_source_code,  import_remappings=['=./', '-']) # Compiled source code
+Gestores_interface = Gestores_compiled_sol['<stdin>:Gestores']
 
-instaladores = w3.eth.contract(
-    address = '0xC0ed1D311963EFc99418C0C84Ff2661CF199f9b0',
-    abi = Instaladores_interface['abi'],
+gestores = w3.eth.contract(
+    address = '0x23215E9FFaE52Eaf79c861d4F620A9748f3652C1',
+    abi = Gestores_interface['abi'],
 )
 
 i_first = 1
 i_last = 5
 i_demands = i_last - i_first + 1
 
-reference_price = int(2190000*0.8)
+reference_price = int(2190000*0.5)
 min_price = int(reference_price*0.1)
 
 #create offers
 for i in range(i_first,i_last+1):
     acct = w3.eth.account.privateKeyToAccount(private_keys[i])
-    i_price_i = random.randint(min_price,reference_price)
-    print('NewInstaller('+str(i_price_i)+')')
-    construct_txn = instaladores.functions.newInstaller(i_price_i).buildTransaction({
+    i_price_m = random.randint(min_price,reference_price)
+    print('NewManager('+str(i_price_m)+')')
+    construct_txn = gestores.functions.newManager(i_price_m).buildTransaction({
         'from': acct.address,
         'nonce': w3.eth.getTransactionCount(acct.address),
         'gasPrice': w3.toWei('1', 'gwei')})
@@ -202,7 +179,7 @@ for i in range(i_first,i_last+1):
 
     # Wait for the transaction to be mined, and get the transaction receipt
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print('Gas used by New Installer = '+str(tx_receipt.gasUsed))
+    print('Gas used by New Manager = '+str(tx_receipt.gasUsed))
 
 i_maxsteps = 9
 i_step = 1
@@ -213,14 +190,14 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
     print('step '+str(i_step))
     i_matched = 0
     for i in range(i_first,i_last+1):
-        b_matched = instaladores.call().isInstaller(public_keys[i])
+        b_matched = gestores.call().isManager(public_keys[i])
         if b_matched == False:
             i_matched += 1
-        elif ((b_matched == True) and ((i_step % 10) == 0)):
+        elif ((b_matched == True) and ((i_step % 25) == 0)):
             #print('*Update Demand*')
             acct = w3.eth.account.privateKeyToAccount(private_keys[i])
-            i_price_i = random.randint(min_price,reference_price)
-            construct_txn = instaladores.functions.updatePrice(i_price_i).buildTransaction({
+            i_price_m = random.randint(min_price,reference_price)
+            construct_txn = gestores.functions.updatePrice(i_price_m).buildTransaction({
                 'from': acct.address,
                 'nonce': w3.eth.getTransactionCount(acct.address),
                 'gasPrice': w3.toWei('1', 'gwei')})
@@ -231,19 +208,18 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
     i_step += 1
 
 
-tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+#tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
 
 #clear demands
 for i in range(i_first,i_last+1):
     acct = w3.eth.account.privateKeyToAccount(private_keys[i])
-    construct_txn = instaladores.functions.deleteInstaller(acct.address).buildTransaction({
+    construct_txn = gestores.functions.deleteManager(acct.address).buildTransaction({
         'from': acct.address,
         'nonce': w3.eth.getTransactionCount(acct.address),
         'gasPrice': w3.toWei('1', 'gwei')})
     signed = acct.signTransaction(construct_txn)
     tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print('Gas used by Delete Installer = '+str(tx_receipt.gasUsed))
-
+    print('Gas used by Delete Manager = '+str(tx_receipt.gasUsed))
         
 

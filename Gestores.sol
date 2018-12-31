@@ -55,6 +55,7 @@ contract Gestores{
     ManagerIndex[rowToDelete] = keyToMove;
     Managers[keyToMove].index = rowToDelete; 
     ManagerIndex.length--;
+    Managers[userAddress].index = 0;
     emit
     LogDeleteManager(
         userAddress, 
@@ -75,29 +76,7 @@ contract Gestores{
     if(!isManager(userAddress)) revert(); 
     return(
       Managers[userAddress].Price); 
-      //Managers[userAddress].index);
-  } 
-  
-  function updatePrice(uint newPrice) 
-    public
-    returns(bool success) 
-  {
-    if(!isManager(msg.sender)) revert(); 
-    Managers[msg.sender].Price = newPrice;
-    emit
-    LogUpdateManager(
-      msg.sender, 
-      Managers[msg.sender].index,
-      newPrice);
-    return true;
-  }
-
-  function getManagersCount() 
-    public
-    constant
-    returns(uint count)
-  {
-    return ManagerIndex.length;
+      //Managers[userAddresngth;
   }
 
   function getManagerAtIndex(uint index)

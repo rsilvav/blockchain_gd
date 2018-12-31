@@ -76,6 +76,7 @@ contract Propietarios{
     DemandIndex[rowToDelete] = keyToMove;
     Demands[keyToMove].index = rowToDelete; 
     DemandIndex.length--;
+    Demands[userAddress].index = 0;
     emit
     LogDeleteDemand(
         userAddress, 

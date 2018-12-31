@@ -100,6 +100,7 @@ contract Propietarios{
     DemandIndex[rowToDelete] = keyToMove;
     Demands[keyToMove].index = rowToDelete; 
     DemandIndex.length--;
+    Demands[userAddress].index = 0;
     emit
     LogDeleteDemand(
         userAddress, 
@@ -224,12 +225,12 @@ Propietarios_compiled_sol = compile_source(Propietarios_source_code,  import_rem
 Propietarios_interface = Propietarios_compiled_sol['<stdin>:Propietarios']
 
 propietarios = w3.eth.contract(
-    address = '0xc493Fef24cC0E42Db3627a703dC756958a2Fa104',
+    address = '0xD5fbF619121824aCB4e7aAf66A1d86947CE87f1B',
     abi = Propietarios_interface['abi'],
 )
 
-i_first = 6
-i_last = 10
+i_first = 1
+i_last = 5
 i_demands = i_last - i_first + 1
 
 reference_price = 2190000
@@ -241,6 +242,7 @@ for i in range(i_first,i_last+1):
     b_funding = bool(random.getrandbits(1))
     i_MaxPrice = random.randint(min_price,reference_price)
     print('NewDemand('+str(b_funding)+', '+str(i_MaxPrice)+')')
+    print(propietarios.call().isDemand(public_keys[i]))
     construct_txn = propietarios.functions.newDemand(b_funding,i_MaxPrice).buildTransaction({
         'from': acct.address,
         'nonce': w3.eth.getTransactionCount(acct.address),
@@ -254,7 +256,7 @@ for i in range(i_first,i_last+1):
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     print('Gas used by New Demand = '+str(tx_receipt.gasUsed))
 
-i_maxsteps = 100
+i_maxsteps = 9
 i_step = 1
 i_matched = 0
 
@@ -289,11 +291,10 @@ for i in range(i_first,i_last+1):
     construct_txn = propietarios.functions.deleteDemand(acct.address).buildTransaction({
         'from': acct.address,
         'nonce': w3.eth.getTransactionCount(acct.address),
-        'gasPrice': w3.toWei('1', 'gwei')})
+        'gasPrice': w3.toWei('1.4', 'gwei')})
     signed = acct.signTransaction(construct_txn)
     tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     print('Gas used by Delete Demand = '+str(tx_receipt.gasUsed))
 
-        
 

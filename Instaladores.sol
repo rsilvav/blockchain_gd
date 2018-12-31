@@ -55,6 +55,7 @@ contract Instaladores{
     InstallerIndex[rowToDelete] = keyToMove;
     Installers[keyToMove].index = rowToDelete; 
     InstallerIndex.length--;
+    Installers[userAddress].index = 0;
     emit
     LogDeleteInstaller(
         userAddress, 
@@ -144,4 +145,3 @@ contract Instaladores{
   }  
 
 }
-

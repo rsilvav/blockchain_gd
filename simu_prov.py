@@ -21,7 +21,6 @@ w3 = Web3(HTTPProvider("https://rinkeby.infura.io/v3/4c0ec7f1412a489d91e1934c66e
 
 # Solidity source code
 Proveedores_source_code = '''
-
 pragma solidity ^0.4.24;
 
 //import "./Owned.sol";
@@ -32,90 +31,91 @@ contract Proveedores{
     uint Price;
     uint index;
   }
-
+  
   mapping(address => Provider) private Providers;
   address[] private ProviderIndex;
 
   mapping(address => int) private Scores;
   mapping(address => mapping(address => bool)) canRate;
-
+  
   event LogNewProvider   (address indexed userAddress, uint index, uint maxPrice);
   event LogUpdateProvider(address indexed userAddress, uint index, uint maxPrice);
   event LogDeleteProvider(address indexed userAddress, uint index);
   event LogNewRate(address indexed Rated, int Score);
-
+  
   function isProvider(address userAddress)
-    public
+    public 
     constant
-    returns(bool isIndeed)
+    returns(bool isIndeed) 
   {
     if(ProviderIndex.length == 0) return false;
     return (ProviderIndex[Providers[userAddress].index] == userAddress);
   }
 
-  function newProvider(uint Price)
+  function newProvider(uint Price) 
     public
     returns(uint index)
   {
-    if(isProvider(msg.sender)) revert();
+    if(isProvider(msg.sender)) revert(); 
     Providers[msg.sender].Price   = Price;
     Providers[msg.sender].index     = ProviderIndex.push(msg.sender)-1;
-    emit
+    emit 
         LogNewProvider(
-        msg.sender,
-        Providers[msg.sender].index,
+        msg.sender, 
+        Providers[msg.sender].index, 
         Price);
     return ProviderIndex.length-1;
   }
 
-  function deleteProvider(address userAddress)
+  function deleteProvider(address userAddress) 
     public
     returns(uint index)
   {
-    if(!isProvider(userAddress)) revert();
+    if(!isProvider(userAddress)) revert(); 
     uint rowToDelete = Providers[userAddress].index;
     address keyToMove = ProviderIndex[ProviderIndex.length-1];
     ProviderIndex[rowToDelete] = keyToMove;
-    Providers[keyToMove].index = rowToDelete;
+    Providers[keyToMove].index = rowToDelete; 
     ProviderIndex.length--;
+    Providers[userAddress].index = 0;
     emit
     LogDeleteProvider(
-        userAddress,
+        userAddress, 
         rowToDelete);
     emit
     LogUpdateProvider(
-        keyToMove,
-        rowToDelete,
+        keyToMove, 
+        rowToDelete, 
         Providers[keyToMove].Price);
     return rowToDelete;
   }
-
+  
   function getProvider(address userAddress)
-    public
+    public 
     constant
     returns(uint maxPrice)
   {
-    if(!isProvider(userAddress)) revert();
+    if(!isProvider(userAddress)) revert(); 
     return(
-      Providers[userAddress].Price);
+      Providers[userAddress].Price); 
       //Providers[userAddress].index);
-  }
-
-  function updatePrice(uint newPrice)
+  } 
+  
+  function updatePrice(uint newPrice) 
     public
-    returns(bool success)
+    returns(bool success) 
   {
-    if(!isProvider(msg.sender)) revert();
+    if(!isProvider(msg.sender)) revert(); 
     Providers[msg.sender].Price = newPrice;
     emit
     LogUpdateProvider(
-      msg.sender,
+      msg.sender, 
       Providers[msg.sender].index,
       newPrice);
     return true;
   }
 
-  function getProvidersCount()
+  function getProvidersCount() 
     public
     constant
     returns(uint count)
@@ -130,7 +130,7 @@ contract Proveedores{
   {
     return ProviderIndex[index];
   }
-
+  
   function getScore(address vendor)
     public
     constant
@@ -140,15 +140,15 @@ contract Proveedores{
   }
 
   function allowRating(
-    address    rater,
-    address    rated)
+    address    rater, 
+    address    rated) 
     public
     returns(bool success)
   {
     canRate[rater][rated] = true;
     return true;
   }
-
+  
   function Rate(
     address    rated,
     int       score)
@@ -160,12 +160,12 @@ contract Proveedores{
     if (score > 1) revert();
     Scores[rated] += score;
     canRate[msg.sender][rated] = false;
-    emit
+    emit 
         LogNewRate(
-        rated,
+        rated, 
         score);
     return true;
-  }
+  }   
 
 }
 '''
@@ -175,7 +175,7 @@ Proveedores_compiled_sol = compile_source(Proveedores_source_code,  import_remap
 Proveedores_interface = Proveedores_compiled_sol['<stdin>:Proveedores']
 
 proveedores = w3.eth.contract(
-    address = '0x88679873522CEEADC39A00187634B657625caF0e',
+    address = '0x71eCEF369c041955C9993c635144a629c82CcD86',
     abi = Proveedores_interface['abi'],
 )
 
@@ -204,7 +204,7 @@ for i in range(i_first,i_last+1):
     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
     print('Gas used by New Vendor = '+str(tx_receipt.gasUsed))
 
-i_maxsteps = 100
+i_maxsteps = 9
 i_step = 1
 i_matched = 0
 
