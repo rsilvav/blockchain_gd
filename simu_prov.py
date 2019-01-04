@@ -380,8 +380,8 @@ cf = w3.eth.contract(
     abi = CF_interface['abi'],
 )
 
-i_first = 5
-i_last = 8
+i_first = 9
+i_last = 16
 i_demands = i_last - i_first + 1
 
 reference_price = int(2190000*0.8)

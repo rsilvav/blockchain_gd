@@ -431,7 +431,7 @@ cf = w3.eth.contract(
 )
 
 i_first = 1
-i_last = 4
+i_last = 8
 i_demands = i_last - i_first + 1
 
 reference_price = 2190000

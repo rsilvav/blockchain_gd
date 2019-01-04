@@ -372,8 +372,8 @@ cf = w3.eth.contract(
     abi = CF_interface['abi'],
 )
 
-i_first = 13
-i_last = 16
+i_first = 25
+i_last = 32
 i_demands = i_last - i_first + 1
 
 reference_price = int(2190000*0.3)
@@ -409,12 +409,12 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
         b_matched = gestores.call().isManager(public_keys[i])
         if b_matched == False:
             i_matched += 1
-        elif public_keys[i] == cf.call().vendor():
+        elif public_keys[i] == cf.call().manager():
             pass
         elif ((b_matched == True) and ((i_step % 150) == 0)):
             #print('*Update Demand*')
             acct = w3.eth.account.privateKeyToAccount(private_keys[i])
-            i_price_m = int(i_price_m*0.8)#random.randint(min_price,reference_price)
+            i_price_m = random.randint(min_price,reference_price)
             construct_txn = gestores.functions.updatePrice(i_price_m).buildTransaction({
                 'from': acct.address,
                 'nonce': w3.eth.getTransactionCount(acct.address),
