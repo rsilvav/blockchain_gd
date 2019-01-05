@@ -368,7 +368,7 @@ CF_compiled_sol = compile_source(CF_source_code,  import_remappings=['-']) # Com
 CF_interface = CF_compiled_sol['<stdin>:CF']
 
 cf = w3.eth.contract(
-    address = '0x698a6Ef8C478eBcDE72b204C758F127Ac55CFc4F',
+    address = '0x4Bac31B5056b1975D286d552F64F7962b8f2b2cc',
     abi = CF_interface['abi'],
 )
 
@@ -376,26 +376,24 @@ i_first = 25
 i_last = 32
 i_demands = i_last - i_first + 1
 
-reference_price = int(2190000*0.3)
-min_price = int(reference_price*0.1)
+reference_price = int(2190000*0.2)
+min_price = int(reference_price*0.4)
 
 #create offers
 for i in range(i_first,i_last+1):
     acct = w3.eth.account.privateKeyToAccount(private_keys[i])
     i_price_m = random.randint(min_price,reference_price)
-    print('NewManager('+str(i_price_m)+')')
-    construct_txn = gestores.functions.newManager(i_price_m).buildTransaction({
-        'from': acct.address,
-        'nonce': w3.eth.getTransactionCount(acct.address),
-        'gasPrice': w3.toWei('1', 'gwei')})
-
-    signed = acct.signTransaction(construct_txn)
-
-    tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
-
-    # Wait for the transaction to be mined, and get the transaction receipt
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print('Gas used by New Manager = '+str(tx_receipt.gasUsed))
+    if gestores.call().isManager(public_keys[i]) == False:
+        print('NewManager('+str(i_price_m)+')')
+        construct_txn = gestores.functions.newManager(i_price_m).buildTransaction({
+            'from': acct.address,
+            'nonce': w3.eth.getTransactionCount(acct.address),
+            'gasPrice': w3.toWei('1', 'gwei')})
+        signed = acct.signTransaction(construct_txn)
+        tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
+        # Wait for the transaction to be mined, and get the transaction receipt
+        tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        print('Gas used by New Manager = '+str(tx_receipt.gasUsed))
 
 i_maxsteps = 10000
 i_step = 1
@@ -411,7 +409,7 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
             i_matched += 1
         elif public_keys[i] == cf.call().manager():
             pass
-        elif ((b_matched == True) and ((i_step % 150) == 0)):
+        elif ((b_matched == True) and ((i_step % 200) == 0)):
             #print('*Update Demand*')
             acct = w3.eth.account.privateKeyToAccount(private_keys[i])
             i_price_m = random.randint(min_price,reference_price)

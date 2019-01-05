@@ -426,7 +426,7 @@ CF_compiled_sol = compile_source(CF_source_code,  import_remappings=['-']) # Com
 CF_interface = CF_compiled_sol['<stdin>:CF']
 
 cf = w3.eth.contract(
-    address = '0x698a6Ef8C478eBcDE72b204C758F127Ac55CFc4F',
+    address = '0x4Bac31B5056b1975D286d552F64F7962b8f2b2cc',
     abi = CF_interface['abi'],
 )
 
@@ -442,24 +442,26 @@ for i in range(i_first,i_last+1):
     acct = w3.eth.account.privateKeyToAccount(private_keys[i])
     b_funding = bool(random.getrandbits(1))
     i_MaxPrice = reference_price #random.randint(min_price,reference_price)
-    print('NewDemand('+str(b_funding)+', '+str(i_MaxPrice)+')')
-    construct_txn = propietarios.functions.newDemand(b_funding,i_MaxPrice).buildTransaction({
-        'from': acct.address,
-        'nonce': w3.eth.getTransactionCount(acct.address),
-        'gasPrice': w3.toWei('1', 'gwei')})
+    if propietarios.call().isDemand(public_keys[i]) == False:
+        print('NewDemand('+str(b_funding)+', '+str(i_MaxPrice)+')')
+        construct_txn = propietarios.functions.newDemand(b_funding,i_MaxPrice).buildTransaction({
+            'from': acct.address,
+            'nonce': w3.eth.getTransactionCount(acct.address),
+            'gasPrice': w3.toWei('1', 'gwei')})
 
-    signed = acct.signTransaction(construct_txn)
+        signed = acct.signTransaction(construct_txn)
 
-    tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
+        tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
 
-    # Wait for the transaction to be mined, and get the transaction receipt
-    tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    print('Gas used by New Demand = '+str(tx_receipt.gasUsed))
+        # Wait for the transaction to be mined, and get the transaction receipt
+        tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+        print('Gas used by New Demand = '+str(tx_receipt.gasUsed))
 
 i_maxsteps = 10000
 i_step = 1
 i_matched = 0
-
+i_checked = 0
+i_checkedgas = 0
 #behaviour
 while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
     print('step '+str(i_step))
@@ -484,6 +486,8 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
                 signed = acct.signTransaction(construct_txn)
                 tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
                 tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)            
+                i_checked += 1
+                i_checkedgas += tx_receipt.gasUsed
             
                 if cf.call().crowdsaleClosed(): 
                     print('$$$$')
@@ -538,3 +542,5 @@ for i in range(1,len(public_keys)):
         tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
         tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
         print('Gas used by Delete Demand = '+str(tx_receipt.gasUsed))
+
+print('Gas used by check = '+str(i_checkedgas)+ ' in '+str(i_checked) +' times.')
