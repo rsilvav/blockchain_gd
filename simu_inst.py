@@ -380,8 +380,8 @@ cf = w3.eth.contract(
     abi = CF_interface['abi'],
 )
 
-i_first = 17
-i_last = 24
+i_first = 45
+i_last = 64
 i_demands = i_last - i_first + 1
 
 reference_price = int(2190000*0.5)
@@ -406,6 +406,7 @@ for i in range(i_first,i_last+1):
 i_maxsteps = 10000
 i_step = 1
 i_matched = 0
+i_checkgas = []
 
 #behaviour
 while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
@@ -428,6 +429,7 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
             signed = acct.signTransaction(construct_txn)
             tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
             tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+            i_checkgas.append(tx_receipt.gasUsed)
     print(i_matched)
     i_step += 1
 
@@ -453,6 +455,6 @@ for i in range(1,len(public_keys)):
         print('Gas used by Delete Demand = '+str(tx_receipt.gasUsed))
 
 
-
+print(i_checkgas)
         
 

@@ -431,7 +431,7 @@ cf = w3.eth.contract(
 )
 
 i_first = 1
-i_last = 8
+i_last = 24
 i_demands = i_last - i_first + 1
 
 reference_price = 2190000
@@ -441,7 +441,7 @@ min_price = int(reference_price*0.4)
 for i in range(i_first,i_last+1):
     acct = w3.eth.account.privateKeyToAccount(private_keys[i])
     b_funding = bool(random.getrandbits(1))
-    i_MaxPrice = reference_price #random.randint(min_price,reference_price)
+    i_MaxPrice = random.randint(min_price,reference_price)
     if propietarios.call().isDemand(public_keys[i]) == False:
         print('NewDemand('+str(b_funding)+', '+str(i_MaxPrice)+')')
         construct_txn = propietarios.functions.newDemand(b_funding,i_MaxPrice).buildTransaction({
@@ -460,8 +460,8 @@ for i in range(i_first,i_last+1):
 i_maxsteps = 10000
 i_step = 1
 i_matched = 0
-i_checked = 0
-i_checkedgas = 0
+i_checkedgas = []
+i_withdrawgas = []
 #behaviour
 while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
     print('step '+str(i_step))
@@ -486,8 +486,7 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
                 signed = acct.signTransaction(construct_txn)
                 tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
                 tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)            
-                i_checked += 1
-                i_checkedgas += tx_receipt.gasUsed
+                i_checkedgas.append(tx_receipt.gasUsed)
             
                 if cf.call().crowdsaleClosed(): 
                     print('$$$$')
@@ -498,8 +497,7 @@ while ((i_matched < i_demands) and (i_step <= i_maxsteps)):
                     signed = acct.signTransaction(construct_txn)
                     tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
                     tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-                    #print('Balance of '+acct.address+' = '+str(coops.call().balanceOf(acct.address))+ '  Coops')
-                
+                    i_withdrawgas.append(tx_receipt.gasUsed) 
             elif ((b_matched == True) and ((i_step % 100000) == 0)):
                 #print('*Update Demand*')
                 acct = w3.eth.account.privateKeyToAccount(private_keys[i])
@@ -543,4 +541,5 @@ for i in range(1,len(public_keys)):
         tx_receipt = w3.eth.waitForTransactionReceipt(tx_hash)
         print('Gas used by Delete Demand = '+str(tx_receipt.gasUsed))
 
-print('Gas used by check = '+str(i_checkedgas)+ ' in '+str(i_checked) +' times.')
+print('Check = '+str(i_checkedgas))
+print('Withdraw = '+str(withdrawgas))
