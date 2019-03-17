@@ -40,8 +40,8 @@ cf = w3.eth.contract(
     abi = cf_values
 )
 
-i_first = 97
-i_last = 120
+i_first = 85
+i_last = 100
 
 hostname = "google.com" #example
 
